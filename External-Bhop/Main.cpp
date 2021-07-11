@@ -3,8 +3,6 @@
 #include <TlHelp32.h>
 #include "offsets.h"
 
-#define FL_ON_GROUND 257
-
 DWORD procid;
 HANDLE hProcess;
 uintptr_t moduleBase;
@@ -47,7 +45,7 @@ int main()
 		ReadProcessMemory(hProcess, (PVOID)(moduleBase + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
 		ReadProcessMemory(hProcess, (PVOID)(local_player + m_fFlags), &local_flags, sizeof(local_flags), NULL);
 
-		if (local_flags == FL_ON_GROUND && GetAsyncKeyState(VK_SPACE) & 0x8000)
+		if (local_flags == 257 && GetAsyncKeyState(VK_SPACE) || local_flags == 263 && GetAsyncKeyState(VK_SPACE))
 		{
 			value = true;
 			WriteProcessMemory(hProcess, (PVOID)(moduleBase + dwForceJump), &value, sizeof(value), NULL);
