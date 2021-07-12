@@ -3,10 +3,10 @@
 #include <TlHelp32.h>
 #include "offsets.h"
 
+HWND hwnd = 00000000;
 DWORD procid;
 HANDLE hProcess;
-uintptr_t moduleBase;
-DWORD gameModule;
+uintptr_t gameModule;
 DWORD local_player;
 int local_flags;
 bool value;
@@ -37,21 +37,39 @@ auto GetModule(const char* modName) -> DWORD
 
 int main()
 {
-	GetWindowThreadProcessId(FindWindowA(NULL, "Counter-Strike: Global Offensive"), &procid);
-	moduleBase = GetModule("client.dll");
-	hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procid);
 	while (true)
 	{
-		ReadProcessMemory(hProcess, (PVOID)(moduleBase + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
+		if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive"))
+		{
+			local_player = 0;
+			do
+			{
+				if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive"))
+				{
+					do
+					{
+						hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
+					} while (hwnd == 00000000);
+					std::cout << "hwnd: " << hwnd << std::endl;
+					GetWindowThreadProcessId(hwnd, &procid);
+					hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procid);
+				}
+				gameModule = GetModule("client.dll");
+				ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
+			} while (local_player == 0);
+			std::cout << "local_player: " << local_player << std::endl;
+		}
+
+		ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
 		ReadProcessMemory(hProcess, (PVOID)(local_player + m_fFlags), &local_flags, sizeof(local_flags), NULL);
 
 		if (local_flags == 257 && GetAsyncKeyState(VK_SPACE) || local_flags == 263 && GetAsyncKeyState(VK_SPACE))
 		{
 			value = true;
-			WriteProcessMemory(hProcess, (PVOID)(moduleBase + dwForceJump), &value, sizeof(value), NULL);
+			WriteProcessMemory(hProcess, (PVOID)(gameModule + dwForceJump), &value, sizeof(value), NULL);
 			Sleep(20);
 			value = false;
-			WriteProcessMemory(hProcess, (PVOID)(moduleBase + dwForceJump), &value, sizeof(value), NULL);
+			WriteProcessMemory(hProcess, (PVOID)(gameModule + dwForceJump), &value, sizeof(value), NULL);
 		}
 	}
 }
