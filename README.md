@@ -1,2 +1,2 @@
 # External-Bhop
-Just run Counter-Strike: Global Offensive and cheat
+Just run cheat and Counter-Strike: Global Offensive
