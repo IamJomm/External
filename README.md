@@ -1,2 +1,2 @@
 # External-Bhop
-Just run cheat and Counter-Strike: Global Offensive
+Just run exe file in "Release" folder and Counter-Strike: Global Offensive.
