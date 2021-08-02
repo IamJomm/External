@@ -7,7 +7,8 @@ HWND hwnd = 00000000;
 DWORD procid;
 HANDLE hProcess;
 uintptr_t gameModule;
-DWORD local_player;
+int local_player;
+int entity_list;
 int local_flags;
 bool value;
 
@@ -42,22 +43,26 @@ int main()
 		if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive"))
 		{
 			local_player = 0;
+			entity_list = 0;
 			do
 			{
-				if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive"))
+				do
 				{
-					do
+					hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
+					if (hwnd != 00000000)
 					{
-						hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
-					} while (hwnd == 00000000);
-					std::cout << "hwnd: " << hwnd << std::endl;
-					GetWindowThreadProcessId(hwnd, &procid);
-					hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procid);
-				}
+						GetWindowThreadProcessId(hwnd, &procid);
+						hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procid);
+					}
+					Sleep(100);
+				} while (hwnd == 00000000);
 				gameModule = GetModule("client.dll");
-				ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
-			} while (local_player == 0);
-			std::cout << "local_player: " << local_player << std::endl;
+				ReadProcessMemory(hProcess, (PVOID)(gameModule + dwEntityList), &entity_list, sizeof(entity_list), NULL);
+				if (entity_list != 0)
+				{
+					ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
+				}
+			} while (entity_list == 0);
 		}
 
 		ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
