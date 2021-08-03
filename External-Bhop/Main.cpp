@@ -3,13 +3,13 @@
 #include <TlHelp32.h>
 #include "offsets.h"
 
-HWND hwnd = 00000000;
+HWND hwnd = 0;
 DWORD procid;
 HANDLE hProcess;
-uintptr_t gameModule;
-int local_player;
-int entity_list;
-int local_flags;
+uintptr_t clientModule;
+int entityList;
+int localPlayer;
+int localFlags;
 bool value;
 
 using namespace hazedumper::netvars;
@@ -40,41 +40,48 @@ int main()
 {
 	while (true)
 	{
-		if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive"))
+		if (hwnd != FindWindowA(NULL, "Counter-Strike: Global Offensive") || hwnd == 0)
 		{
-			local_player = 0;
-			entity_list = 0;
-			do
+			hwnd = 0;
+			localPlayer = 0;
+			entityList = 0;
+			while (localPlayer == 0)
 			{
 				do
 				{
 					hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
-					if (hwnd != 00000000)
+					if (hwnd != 0)
 					{
 						GetWindowThreadProcessId(hwnd, &procid);
 						hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procid);
 					}
-					Sleep(100);
-				} while (hwnd == 00000000);
-				gameModule = GetModule("client.dll");
-				ReadProcessMemory(hProcess, (PVOID)(gameModule + dwEntityList), &entity_list, sizeof(entity_list), NULL);
-				if (entity_list != 0)
+					else Sleep(100);
+				} while (hwnd == 0);
+				while (localPlayer == 0 && hwnd == FindWindowA(NULL, "Counter-Strike: Global Offensive"))
 				{
-					ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
+					clientModule = GetModule("client.dll");
+					ReadProcessMemory(hProcess, (PVOID)(clientModule + dwEntityList), &entityList, sizeof(entityList), NULL);
+					if (entityList != 0) ReadProcessMemory(hProcess, (PVOID)(clientModule + dwLocalPlayer), &localPlayer, sizeof(localPlayer), NULL);
+					else Sleep(100);
 				}
-			} while (entity_list == 0);
+			}
 		}
 
-		ReadProcessMemory(hProcess, (PVOID)(gameModule + dwLocalPlayer), &local_player, sizeof(local_player), NULL);
-		ReadProcessMemory(hProcess, (PVOID)(local_player + m_fFlags), &local_flags, sizeof(local_flags), NULL);
-
-		if (local_flags == 257 && GetAsyncKeyState(VK_SPACE) || local_flags == 263 && GetAsyncKeyState(VK_SPACE))
+		ReadProcessMemory(hProcess, (PVOID)(clientModule + dwEntityList), &entityList, sizeof(entityList), NULL);
+		if (entityList != 0)
 		{
-			value = true;
-			WriteProcessMemory(hProcess, (PVOID)(gameModule + dwForceJump), &value, sizeof(value), NULL);
-			Sleep(20);
-			value = false;
-			WriteProcessMemory(hProcess, (PVOID)(gameModule + dwForceJump), &value, sizeof(value), NULL);
+			ReadProcessMemory(hProcess, (PVOID)(clientModule + dwLocalPlayer), &localPlayer, sizeof(localPlayer), NULL);
+			ReadProcessMemory(hProcess, (PVOID)(localPlayer + m_fFlags), &localFlags, sizeof(localFlags), NULL);
+
+			if (localFlags == 257 && GetAsyncKeyState(VK_SPACE) || localFlags == 263 && GetAsyncKeyState(VK_SPACE))
+			{
+				value = true;
+				WriteProcessMemory(hProcess, (PVOID)(clientModule + dwForceJump), &value, sizeof(value), NULL);
+				Sleep(25);
+				value = false;
+				WriteProcessMemory(hProcess, (PVOID)(clientModule + dwForceJump), &value, sizeof(value), NULL);
+			}
 		}
+		else Sleep(100);
 	}
 }
