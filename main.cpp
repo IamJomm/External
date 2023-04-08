@@ -93,7 +93,7 @@ int main(){
     while(input != '\r'){
         system("cls");
         for(int i = 1; i <= sizeof(names) / sizeof(names[0]); i++){
-            cout << (choice == i? ">" : " ") << names[i - 1];
+            cout << (choice == i? "> " : "  ") << names[i - 1];
             for(int j = 0; j < max - names[i - 1].size() + 1; j++)
                 cout << " ";
             cout << "<" << (arr[i - 1] == true? "true": "false") << ">" << endl;
@@ -116,8 +116,11 @@ int main(){
 	getProcess(hProc, procId, "csgo.exe");
 	clientMod = getModule(procId, "client.dll");
 	cout << hProc << " " << procId << " " << "0x" << hex << clientMod << dec << endl;
-    void (*functinos[3])() = {bhop, radar, glow};
+    void (*functions[3])() = {bhop, radar, glow};
+    thread threads[sizeof(functions)/sizeof(functions[0])];
     for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++)
         if(arr[i] == true)
-            thread(functinos[i]).join();
+            threads[i] = thread(functions[i]);
+    for(int i = 0; i < sizeof(threads) / sizeof(threads[0]); i++)
+        threads[i].join();
 }
