@@ -1,4 +1,5 @@
 #include <thread>
+#include <conio.h>
 #include "tools.hpp"
 #include "offsets.hpp"
 
@@ -83,13 +84,41 @@ void glow(){
 }
 
 int main(){
+    string names[] = {"Bhop", "Radar hack", "Glow ESP"};
+    bool arr[] = {false, false, false};
+    int choice = 1, max = 0;
+    char input;
+    for(int i = 0; i < sizeof(names) / sizeof(names[0]); i++)
+        if(names[i].size() > max) max = names[i].size();
+    while(input != '\r'){
+        system("cls");
+        for(int i = 1; i <= sizeof(names) / sizeof(names[0]); i++){
+            cout << (choice == i? ">" : " ") << names[i - 1];
+            for(int j = 0; j < max - names[i - 1].size() + 1; j++)
+                cout << " ";
+            cout << "<" << (arr[i - 1] == true? "true": "false") << ">" << endl;
+        }
+        input = _getch();
+        switch(input){
+            case 72: if (choice > 1)
+                choice--; break;
+            case 80: if(choice < sizeof(names) / sizeof(names[0]))
+                choice++; break;
+            case 75:
+            case 77:
+                if (arr[choice - 1] == false)
+                    arr[choice - 1] = true;
+                else arr[choice - 1] = false;
+                break;
+        }
+    }
+    system("cls");
 	getProcess(hProc, procId, "csgo.exe");
 	clientMod = getModule(procId, "client.dll");
 	cout << hProc << " " << procId << " " << "0x" << hex << clientMod << dec << endl;
-	thread thBhop(bhop);
-    thread thRadar(radar);
-    thread thGlow(glow);
-    thBhop.join();
-    thRadar.join();
-    thGlow.join();
+    thread threads[3] = {thread(bhop), thread(radar), thread(glow)};
+    for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++){
+        if(arr[i] == true)
+            threads[i].join();
+    }
 }
