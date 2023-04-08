@@ -25,55 +25,60 @@ datatype rpm(DWORD address){
 void bhop(){
     int locPlayer, locFlags;
     while(true){
-        locPlayer = rpm<int>(clientMod + dwLocalPlayer);
-        locFlags = rpm<int>(locPlayer + m_fFlags);
-        if(locFlags == 257 && GetAsyncKeyState(VK_SPACE) || locFlags == 263 && GetAsyncKeyState(VK_SPACE)){
-            wpm<bool>(clientMod + dwForceJump, true);
-            Sleep(50);
-            wpm<bool>(clientMod + dwForceJump, true);
-        }
+        if(rpm<int>(clientMod + dwEntityList) != 0){
+            locPlayer = rpm<int>(clientMod + dwLocalPlayer);
+            locFlags = rpm<int>(locPlayer + m_fFlags);
+            if(locFlags == 257 && GetAsyncKeyState(VK_SPACE) || locFlags == 263 && GetAsyncKeyState(VK_SPACE)){
+                wpm<bool>(clientMod + dwForceJump, true);
+                Sleep(50);
+                wpm<bool>(clientMod + dwForceJump, false);
+            }
+        } else Sleep(200);
     }
 }
 
 void radar(){
-    int locPlayer, entity;
+    int entity;
 	while(true){
-        locPlayer = rpm<int>(clientMod + dwLocalPlayer);
-        for(short int i = 1; i <= 64; i++){
-            entity = rpm<int>(clientMod + dwEntityList + i * 0x10);
-            if(entity + m_bDormant != 1)
-                wpm<bool>(entity + m_bSpotted, true);
-        }
-        Sleep(20);
+        if(rpm<int>(clientMod + dwEntityList) != 0){
+            for(short int i = 1; i <= 64; i++){
+                entity = rpm<int>(clientMod + dwEntityList + i * 0x10);
+                if(entity + m_bDormant != 1)
+                    wpm<bool>(entity + m_bSpotted, true);
+            }
+            Sleep(20);
+        } else Sleep(200);
     }
 }
 
 void glow(){
     int locPlayer, glowObjectManager, entity, glowIndex;
     while(true){
-        locPlayer = rpm<int>(clientMod + dwLocalPlayer);
-        glowObjectManager = rpm<int>(clientMod + dwGlowObjectManager);
-        for(int i = 1; i <= 64; i++){
-            entity = rpm<int>(clientMod + dwEntityList + i * 0x10);
-            if(entity + m_bDormant != 1){
-                glowIndex = rpm<int>(entity + m_iGlowIndex);
-                if(rpm<int>(entity + m_iTeamNum) == 2){
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x8, 0.87f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0xC, 0.6f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x10, 0.2f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x14, 0.8f);
+        if(rpm<int>(clientMod + dwEntityList) != 0){
+            locPlayer = rpm<int>(clientMod + dwLocalPlayer);
+            glowObjectManager = rpm<int>(clientMod + dwGlowObjectManager);
+            for(int i = 1; i <= 64; i++){
+                entity = rpm<int>(clientMod + dwEntityList + i * 0x10);
+                if(entity + m_bDormant != 1){
+                    glowIndex = rpm<int>(entity + m_iGlowIndex);
+                    if(rpm<int>(entity + m_iTeamNum) == 2){
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x8, 0.87f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0xC, 0.6f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x10, 0.2f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x14, 0.8f);
+                    }
+                    else{
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x8, 0.36f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0xC, 0.47f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x10, 0.68f);
+                        wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x14, 0.8f);
+                    }
+                    wpm<bool>(glowObjectManager + glowIndex * 0x38 + 0x27, true);
+                    wpm<bool>(glowObjectManager + glowIndex * 0x38 + 0x28, true);
                 }
-                else{
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x8, 0.36f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0xC, 0.47f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x10, 0.68f);
-                    wpm<float>(glowObjectManager + glowIndex * 0x38 + 0x14, 0.8f);
-                }
-                wpm<bool>(glowObjectManager + glowIndex * 0x38 + 0x27, true);
-                wpm<bool>(glowObjectManager + glowIndex * 0x38 + 0x28, true);
             }
-        }
-        Sleep(15);
+            Sleep(15);
+        } else Sleep(200);
     }
 }
 
