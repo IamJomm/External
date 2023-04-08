@@ -1,2 +1,2 @@
 # External
-Just run exe file and *THEN* Counter-Strike: Global Offensive.
+Just run Counter-Strike: Global Offensive. and *THEN* exe file
