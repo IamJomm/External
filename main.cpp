@@ -116,9 +116,8 @@ int main(){
 	getProcess(hProc, procId, "csgo.exe");
 	clientMod = getModule(procId, "client.dll");
 	cout << hProc << " " << procId << " " << "0x" << hex << clientMod << dec << endl;
-    thread threads[3] = {thread(bhop), thread(radar), thread(glow)};
-    for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++){
+    void (*functinos[3])() = {bhop, radar, glow};
+    for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++)
         if(arr[i] == true)
-            threads[i].join();
-    }
+            thread(functinos[i]).join();
 }
