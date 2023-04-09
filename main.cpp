@@ -1,4 +1,4 @@
-#include <vector>
+#include <queue>
 #include <thread>
 #include <conio.h>
 #include "tools.hpp"
@@ -118,9 +118,10 @@ int main(){
 	clientMod = getModule(procId, "client.dll");
 	cout << hProc << " " << procId << " " << "0x" << hex << clientMod << dec << endl;
     void (*functions[3])() = {bhop, radar, glow};
-    vector<thread> threads;
+    queue<thread> threads;
     for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++)
         if(arr[i] == true)
-            threads.push_back(thread(functions[i]));
-    for(thread& th : threads) th.join();
+            threads.push(thread(functions[i]));
+    while(!threads.empty())
+        threads.front().join(), threads.pop();
 }
