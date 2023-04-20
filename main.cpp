@@ -35,13 +35,12 @@ void bhop(){
     int locPlayer, locFlags;
     while(status[0]){
         if(rpm<int>(clientMod + dwEntityList)){
-            locPlayer = rpm<int>(clientMod + dwLocalPlayer);
-            locFlags = rpm<int>(locPlayer + m_fFlags);
-            if(locFlags == 257 && GetAsyncKeyState(VK_SPACE) || locFlags == 263 && GetAsyncKeyState(VK_SPACE)){
+            locFlags = rpm<int>(rpm<int>(clientMod + dwLocalPlayer) + m_fFlags);
+            if(locFlags == 257 && GetAsyncKeyState(VK_SPACE) || locFlags == 263 && GetAsyncKeyState(VK_SPACE))
                 wpm<bool>(clientMod + dwForceJump, true);
-                this_thread::sleep_for(chrono::milliseconds(30));
+            else
                 wpm<bool>(clientMod + dwForceJump, false);
-            }
+            this_thread::sleep_for(chrono::milliseconds(1));
         } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
@@ -55,7 +54,7 @@ void radar(){
                 if(entity + m_bDormant != 1)
                     wpm<bool>(entity + m_bSpotted, true);
             }
-            this_thread::sleep_for(chrono::milliseconds(20));
+            this_thread::sleep_for(chrono::milliseconds(10));
         } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
@@ -89,6 +88,7 @@ void triggerbot(){
     int locPlayer, crosshairId, player;
     while(status[3]){
         if(rpm<int>(clientMod + dwEntityList)){
+            this_thread::sleep_for(chrono::milliseconds(1));
             locPlayer = rpm<int>(clientMod + dwLocalPlayer);
             if(!rpm<int>(locPlayer + m_iHealth)) continue;
             crosshairId = rpm<int>(locPlayer + m_iCrosshairId);
