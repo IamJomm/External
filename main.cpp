@@ -1,6 +1,6 @@
-#include <queue>
 #include <thread>
 #include <conio.h>
+#include <iostream>
 #include "tools.hpp"
 #include "offsets.hpp"
 
@@ -18,6 +18,7 @@ struct color{
 HANDLE hProc;
 DWORD procId;
 uintptr_t clientMod;
+bool status[] = {false, false, false, false};
 
 template <class datatype>
 void wpm(DWORD address, datatype value){
@@ -32,36 +33,36 @@ datatype rpm(DWORD address){
 
 void bhop(){
     int locPlayer, locFlags;
-    while(true){
+    while(status[0]){
         if(rpm<int>(clientMod + dwEntityList)){
             locPlayer = rpm<int>(clientMod + dwLocalPlayer);
             locFlags = rpm<int>(locPlayer + m_fFlags);
             if(locFlags == 257 && GetAsyncKeyState(VK_SPACE) || locFlags == 263 && GetAsyncKeyState(VK_SPACE)){
                 wpm<bool>(clientMod + dwForceJump, true);
-                Sleep(50);
+                this_thread::sleep_for(chrono::milliseconds(30));
                 wpm<bool>(clientMod + dwForceJump, false);
             }
-        } else Sleep(200);
+        } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
 
 void radar(){
     int entity;
-	while(true){
+	while(status[1]){
         if(rpm<int>(clientMod + dwEntityList)){
             for(short int i = 1; i <= 64; i++){
                 entity = rpm<int>(clientMod + dwEntityList + i * 0x10);
                 if(entity + m_bDormant != 1)
                     wpm<bool>(entity + m_bSpotted, true);
             }
-            Sleep(20);
-        } else Sleep(200);
+            this_thread::sleep_for(chrono::milliseconds(20));
+        } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
 
 void glow(){
     int locPlayer, glowObjectManager, entity, glowIndex;
-    while(true){
+    while(status[2]){
         if(rpm<int>(clientMod + dwEntityList)){
             locPlayer = rpm<int>(clientMod + dwLocalPlayer);
             glowObjectManager = rpm<int>(clientMod + dwGlowObjectManager);
@@ -79,32 +80,33 @@ void glow(){
                     wpm<bool>(glowObjectManager + glowIndex * 0x38 + 0x28, true);
                 }
             }
-            Sleep(15);
-        } else Sleep(200);
+            this_thread::sleep_for(chrono::milliseconds(15));
+        } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
 
 void triggerbot(){
     int locPlayer, crosshairId, player;
-    while(true){
+    while(status[3]){
         if(rpm<int>(clientMod + dwEntityList)){
             locPlayer = rpm<int>(clientMod + dwLocalPlayer);
             if(!rpm<int>(locPlayer + m_iHealth)) continue;
             crosshairId = rpm<int>(locPlayer + m_iCrosshairId);
             if(!crosshairId || crosshairId > 64) continue;
             player = rpm<int>(clientMod + dwEntityList + (crosshairId - 1) * 0x10);
-            if(!rpm<int>(player + m_iHealth)) continue;
-            if(rpm<int>(locPlayer + m_iTeamNum) == rpm<int>(player + m_iTeamNum)) continue;
+            if(!rpm<int>(player + m_iHealth) || rpm<int>(locPlayer + m_iTeamNum) == rpm<int>(player + m_iTeamNum)) continue;
             wpm<int>(clientMod + dwForceAttack, 6);
-            Sleep(30);
+            this_thread::sleep_for(chrono::milliseconds(30));
             wpm<int>(clientMod + dwForceAttack, 4);
-        } else Sleep(200);
+        } else this_thread::sleep_for(chrono::milliseconds(200));
     }
 }
 
 int main(){
+	getProcess(hProc, procId, "csgo.exe");
+	clientMod = getModule(procId, "client.dll");
     string names[] = {"Bhop", "Radar hack", "Glow ESP", "Triggerbot"};
-    bool arr[] = {false, false, false, false};
+    void (*functions[4])() = {bhop, radar, glow, triggerbot};
     int choice = 1, max = 0;
     char input;
     for(int i = 0; i < sizeof(names) / sizeof(names[0]); i++)
@@ -115,7 +117,7 @@ int main(){
             cout << (choice == i? "> " : "  ") << names[i - 1];
             for(int j = 0; j < max - names[i - 1].size() + 1; j++)
                 cout << " ";
-            cout << "<" << (arr[i - 1] == true? "true": "false") << ">" << endl;
+            cout << "<" << (status[i - 1] == true? "true": "false") << ">" << endl;
         }
         input = _getch();
         switch(input){
@@ -125,21 +127,12 @@ int main(){
                 choice++; break;
             case 75:
             case 77:
-                if (arr[choice - 1] == false)
-                    arr[choice - 1] = true;
-                else arr[choice - 1] = false;
+                if (status[choice - 1] == false){
+                    status[choice - 1] = true;
+                    thread(functions[choice - 1]).detach();
+                }
+                else status[choice - 1] = false;
                 break;
         }
     }
-    system("cls");
-	getProcess(hProc, procId, "csgo.exe");
-	clientMod = getModule(procId, "client.dll");
-	cout << hProc << " " << procId << " " << "0x" << hex << clientMod << dec << endl;
-    void (*functions[4])() = {bhop, radar, glow, triggerbot};
-    queue<thread> threads;
-    for(int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++)
-        if(arr[i] == true)
-            threads.push(thread(functions[i]));
-    while(!threads.empty())
-        threads.front().join(), threads.pop();
 }
